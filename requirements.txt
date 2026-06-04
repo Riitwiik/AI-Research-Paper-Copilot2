@@ -1,0 +1,34 @@
+# ============================================================
+# AI Research Copilot — requirements.txt
+# Python 3.10 | Streamlit Cloud compatible
+# ============================================================
+httpx==0.27.2
+# Frontend
+streamlit==1.37.1
+
+# LLM (Groq only — NO OpenAI)
+groq==0.11.0
+
+# Embeddings
+sentence-transformers==3.0.1
+
+# Vector Database
+qdrant-client==1.11.1
+
+# PDF Parsing
+PyMuPDF==1.24.10
+
+# BM25 Retrieval
+rank-bm25==0.2.2
+
+# Utilities
+pydantic==2.8.2
+python-dotenv==1.0.1
+
+# Implicit dependencies (pinned for reproducibility)
+torch==2.3.1
+numpy==1.26.4
+
+certifi==2025.4.26
+
+
