@@ -195,8 +195,6 @@ This improves retrieval precision significantly.
 ---
 
 
-![Dashboard 2](Dashboard2.png)
-
 
 ## 📥 Paper Ingestion 
 
@@ -208,11 +206,6 @@ This improves retrieval precision significantly.
 ![Ask Questions 1](ask1.png)
 ![Ask Questions 1](ask2.png)
 
----
-
-## 📑 Citation-Grounded Responses
-
-![Ask Questions 2](ask-question2.png)
 
 
 ---
@@ -247,9 +240,6 @@ This improves retrieval precision significantly.
 
 ---
 
-### 🔬 Detailed Comparative Insights
-
-![Compare Papers 4](compare-paper4.png)
 
 
 
