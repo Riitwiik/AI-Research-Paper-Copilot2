@@ -190,7 +190,7 @@ This improves retrieval precision significantly.
 
 ## 📊 Dashboard
 
-![Dashboard](Dashboard.png)
+![Dashboard](dashboard.png)
 
 ---
 
@@ -200,12 +200,13 @@ This improves retrieval precision significantly.
 
 ## 📥 Paper Ingestion 
 
-![Ingest Paper](ingest-paper.png)
+![Ingest Paper](ingest.png)
 
 
 ## 🔍 Research Q&A Interface
 
-![Ask Questions 1](ask-question1.png)
+![Ask Questions 1](ask1.png)
+![Ask Questions 1](ask2.png)
 
 ---
 
@@ -218,31 +219,31 @@ This improves retrieval precision significantly.
 
 ## 📚 Literature Review Generation
 
-![Literature Review 1](literature-review1.png)
+![Literature Review 1](literaturereview1.png)
 
 ---
 
-![Literature Review 2](literature-review2.png)
+![Literature Review 2](literaturereview2.png)
 
 ---
 
-![Literature Review 3](literature-review3.png)
+![Literature Review 3](literaturereview3.png)
 
 ### 📄 Paper Selection Interface
 
-![Compare Papers 1](compare-paper1.png)
+![Compare Papers 1](compare1.png)
 
 ---
 
 ### 🧠 Comparative Analysis Generation
 
-![Compare Papers 2](compare-paper2.png)
+![Compare Papers 2](compare2.png)
 
 ---
 
 ### 📊 Research Comparison Output
 
-![Compare Papers 3](compare-paper-3.png)
+![Compare Papers 3](compare3.png)
 
 ---
 
