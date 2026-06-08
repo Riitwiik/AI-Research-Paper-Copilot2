@@ -1,16 +1,3 @@
-"""
-AI Research Copilot — A production-style GenAI project for Streamlit Cloud.
-
-Demonstrates: Advanced RAG, Hybrid Retrieval, Citation-Grounded Answers,
-              Smart Chunking, and Clean GenAI Engineering.
-
-Tech: Streamlit | Groq (llama-3.1-8b-instant) | sentence-transformers |
-      Qdrant (local) | SQLite | PyMuPDF | BM25 + Dense + RRF
-"""
-
-# ============================================================================
-# 1. CONFIG
-# ============================================================================
 
 import os
 import re
@@ -29,18 +16,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
 )
 logger = logging.getLogger("research_copilot")
 
-# ---------------------------------------------------------------------------
-# Pydantic-style config (kept lightweight with dataclasses + validation)
-# ---------------------------------------------------------------------------
 @dataclass
 class AppConfig:
     """Centralised configuration with sensible defaults."""
@@ -74,9 +55,6 @@ def get_config() -> AppConfig:
     return cfg
 
 
-# ============================================================================
-# 2. DATABASE  (SQLite metadata store)
-# ============================================================================
 
 class MetadataDB:
     """Lightweight SQLite wrapper for paper and chunk metadata."""
@@ -209,9 +187,6 @@ def get_db() -> MetadataDB:
     return MetadataDB(get_config().sqlite_path)
 
 
-# ============================================================================
-# 3. VECTOR STORE  (Qdrant local mode)
-# ============================================================================
 
 class VectorStore:
     """Thin wrapper around Qdrant local client for dense vector storage."""
@@ -420,9 +395,6 @@ def get_vector_store() -> VectorStore:
     return VectorStore(get_config().qdrant_path)
 
 
-# ============================================================================
-# 4. PDF PROCESSING  (PyMuPDF + arXiv download)
-# ============================================================================
 
 import urllib.request
 import urllib.error
@@ -564,9 +536,6 @@ def extract_text_from_pdf(pdf_path: str) -> list[dict]:
     return pages
 
 
-# ============================================================================
-# 5. CHUNKING  (section-aware + overlap + citation preservation)
-# ============================================================================
 
 # Common section headers in CS / ML papers
 _SECTION_PATTERNS = [
@@ -695,9 +664,6 @@ def _flush_chunk(
     )
 
 
-# ============================================================================
-# 6. EMBEDDINGS  (sentence-transformers, lazy-loaded)
-# ============================================================================
 
 @st.cache_resource
 def get_embedding_model():
@@ -717,9 +683,6 @@ def embed_texts(texts: list[str], batch_size: int = 32) -> list[list[float]]:
     return embeddings.tolist()
 
 
-# ============================================================================
-# 7. RETRIEVAL  (BM25 + Dense + Reciprocal Rank Fusion)
-# ============================================================================
 
 class HybridRetriever:
     """BM25 + Dense retrieval with Reciprocal Rank Fusion."""
@@ -826,9 +789,6 @@ def get_retriever() -> HybridRetriever:
     return retriever
 
 
-# ============================================================================
-# LLM CALLS  (Groq only)
-# ============================================================================
 
 def call_groq(system_prompt: str, user_prompt: str, max_tokens: int = 1024) -> str:
     """Call Groq chat completions. Returns the assistant message text."""
@@ -855,9 +815,6 @@ def call_groq(system_prompt: str, user_prompt: str, max_tokens: int = 1024) -> s
         return f"❌ Groq API error: {exc}"
 
 
-# ============================================================================
-# INGESTION PIPELINE  (ties PDF → chunks → embeddings → stores)
-# ============================================================================
 
 def ingest_arxiv_paper(arxiv_id: str) -> Optional[str]:
     """End-to-end: download arXiv PDF → extract → chunk → embed → store.
@@ -1017,33 +974,6 @@ def ingest_uploaded_pdf(uploaded_file, paper_title: str = "") -> Optional[str]:
     return paper_id
 
 
-# ============================================================================
-# 7b. DEMO PAPERS  (Persistent pre-indexed collections — NO re-embedding)
-# ============================================================================
-#
-# Architecture:
-# ─────────────
-# Demo paper collections are FULLY PRE-INDEXED and stored as JSON snapshot
-# files inside the repository under `demo_collection_assets/`.  These
-# snapshots contain the precomputed vectors and payloads produced by the
-# embedding model during the ONE-TIME first-run initialisation.
-#
-# Three-path startup logic:
-#   PATH A: Qdrant demo collection already exists locally with points?
-#      → YES: Load it directly (instant, no work needed)
-#   PATH B: Snapshot file exists in the repository?
-#      → YES: Restore Qdrant collection from snapshot (fast file I/O,
-#             no embedding model, no PDF parsing, no chunking)
-#   PATH C: Neither exists (first-ever run on this machine)?
-#      → Parse PDF, chunk, embed, store in Qdrant, then AUTO-EXPORT
-#        the snapshot file so it never needs to embed again.
-#
-# After the FIRST run (Path C), the snapshot file is created and committed
-# to version control.  On all subsequent runs (including on Streamlit Cloud),
-# Path A or Path B is used — the embedding model is NEVER called again for
-# demo papers.  This guarantees near-instant loading after restarts,
-# redeployments, container recreation, or Streamlit Cloud sleep/wake cycles.
-# ─────────────────────────────────────────────────────────────────────────────
 
 # Per-demo-paper configuration — deterministic IDs, never conflict with user uploads
 _DEMO_PAPER_CONFIG = {
@@ -1243,9 +1173,6 @@ def _initialize_single_demo(paper_num: int) -> Optional[str]:
         st.session_state[f"demo_paper_{paper_num}_loaded"] = True
         return paper_id
 
-    # ───────────────────────────────────────────────────────────────────────
-    # PATH B: Qdrant collection missing — restore from pre-indexed snapshot
-    # ───────────────────────────────────────────────────────────────────────
     if snapshot_path.exists():
         logger.info(
             "Demo paper %d: Qdrant collection missing — restoring from snapshot %s",
@@ -1273,13 +1200,6 @@ def _initialize_single_demo(paper_num: int) -> Optional[str]:
             )
             return None
 
-    # ───────────────────────────────────────────────────────────────────────
-    # PATH C: First-ever run — parse PDF, chunk, embed, then AUTO-EXPORT
-    # ───────────────────────────────────────────────────────────────────────
-    # This path runs ONLY ONCE per machine/repository.  After it completes,
-    # the snapshot file is created and all future runs use Path A or B.
-    # On Streamlit Cloud (where /tmp is wiped on restart but the repo
-    # persists), Path B will always be used because the snapshot is in git.
     logger.info(
         "Demo paper %d: first-time initialisation — will embed and auto-export snapshot",
         paper_num,
@@ -1355,9 +1275,6 @@ def _initialize_single_demo(paper_num: int) -> Optional[str]:
         retriever = get_retriever()
         retriever.index_bm25(texts, [c["chunk_id"] for c in chunks])
 
-        # ───────────────────────────────────────────────────────────────────
-        # AUTO-EXPORT: Save snapshot file so we NEVER embed again
-        # ───────────────────────────────────────────────────────────────────
         _auto_export_demo_snapshot(paper_num)
 
         # 8. Save metadata JSON alongside the PDF
@@ -1415,19 +1332,6 @@ def initialize_demo_paper_set() -> Optional[list[str]]:
     return results if results else None
 
 
-# ============================================================================
-# 7c. DEMO SNAPSHOT AUTO-EXPORT & MANUAL EXPORT UTILITY
-# ============================================================================
-#
-# _auto_export_demo_snapshot() is called automatically after first-time
-# embedding (Path C) so the developer doesn't have to do anything extra.
-#
-# export_demo_snapshots() is a manual developer utility to re-export
-# snapshots if the Qdrant collections have been modified.
-#
-# After the snapshot files exist in the repo and are committed to git,
-# the app will always use Path A or Path B — never embedding again.
-# ─────────────────────────────────────────────────────────────────────────────
 
 def _auto_export_demo_snapshot(paper_num: int) -> bool:
     """Auto-export a single demo collection to a snapshot JSON file.
@@ -1598,9 +1502,6 @@ def export_demo_snapshots() -> dict[int, bool]:
     return results
 
 
-# ============================================================================
-# 8. STREAMLIT UI
-# ============================================================================
 
 def _init_session_state() -> None:
     """Set defaults for session-state keys."""
@@ -1979,9 +1880,6 @@ def page_compare() -> None:
         st.markdown(comparison)
 
 
-# ============================================================================
-# 9. STARTUP
-# ============================================================================
 
 def main() -> None:
     """Application entry point."""
