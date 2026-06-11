@@ -63,7 +63,7 @@ class MetadataDB:
         self.db_path = db_path
         self._init_schema()
 
-    # -- internal helpers ---------------------------------------------------
+    
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path)
@@ -104,7 +104,7 @@ class MetadataDB:
             )
         logger.info("SQLite schema initialised at %s", self.db_path)
 
-    # -- public API ---------------------------------------------------------
+    
 
     def upsert_paper(
         self,
@@ -537,7 +537,7 @@ def extract_text_from_pdf(pdf_path: str) -> list[dict]:
 
 
 
-# Common section headers in CS / ML papers
+# Common section headers
 _SECTION_PATTERNS = [
     r"(?i)^(abstract|introduction|background|related work|method|methodology|"
     r"approach|experiment|experiments|results|evaluation|discussion|"
@@ -598,7 +598,7 @@ def smart_chunk(
             )
             chunk_counter += 1
 
-    # ---- second pass: split oversized chunks with overlap ----
+    # split oversized chunks with overlap
     final_chunks: list[dict] = []
     for ch in chunks:
         text = ch["text"]
@@ -692,7 +692,7 @@ class HybridRetriever:
         self.bm25_ids: list[str] = []
         self._bm25 = None
 
-    # -- BM25 indexing -------------------------------------------------------
+    #  BM25 indexing
 
     def index_bm25(self, texts: list[str], chunk_ids: list[str]) -> None:
         """(Re)build the BM25 index.  Called after new chunks are added."""
@@ -717,7 +717,7 @@ class HybridRetriever:
         ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
         return [{"chunk_id": self.bm25_ids[i], "score": float(s)} for i, s in ranked if s > 0]
 
-    # -- Dense search -------------------------------------------------------
+    #  Dense search
 
     def dense_search(self, query: str, top_k: int = 3) -> list[dict]:
         """Search Qdrant (main + demo collections) with the query embedding."""
@@ -725,7 +725,7 @@ class HybridRetriever:
         vs = get_vector_store()
         return vs.search_all(q_vec, limit=top_k)
 
-    # -- Reciprocal Rank Fusion ---------------------------------------------
+    # Reciprocal Rank Fusion 
 
     @staticmethod
     def rrf(
@@ -762,7 +762,7 @@ class HybridRetriever:
             fused.append(entry)
         return fused
 
-    # -- Full hybrid search --------------------------------------------------
+    #  Full hybrid search 
 
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         """Run hybrid search and return the top-k fused results."""
@@ -1075,7 +1075,7 @@ def _restore_demo_sqlite_and_bm25(paper_num: int, paper_id: str, title: str) -> 
                 paper_num, exc,
             )
 
-    # Fallback: re-populate from Qdrant vectors (scroll with payloads)
+    # Fallback: re-populate from Qdrant vectors 
     vs = get_vector_store()
     if vs.has_demo_collection(paper_num):
         try:
@@ -1158,9 +1158,6 @@ def _initialize_single_demo(paper_num: int) -> Optional[str]:
     paper_id = metadata.get("paper_id", dcfg["paper_id"])
     title = metadata.get("title", dcfg["title"])
 
-    # ───────────────────────────────────────────────────────────────────────
-    # PATH A: Qdrant collection exists locally with points — instant load
-    # ───────────────────────────────────────────────────────────────────────
     if vs.has_demo_collection(paper_num) and vs.demo_collection_point_count(paper_num) > 0:
         logger.info(
             "Demo paper %d: Qdrant collection exists with %d points — loading directly",
@@ -1542,7 +1539,7 @@ def _sidebar() -> None:
         st.caption("Built with ❤️ for GenAI interviews")
 
 
-# -- Dashboard --------------------------------------------------------------
+# Dashboard 
 
 def page_dashboard() -> None:
     st.header("📊 Dashboard")
@@ -1589,7 +1586,7 @@ def page_dashboard() -> None:
     )
 
 
-# -- Ingest Papers ----------------------------------------------------------
+#  Ingest Paper
 
 def page_ingest() -> None:
     st.header("📥 Ingest Papers")
@@ -1634,7 +1631,7 @@ def page_ingest() -> None:
                 st.error("Ingestion failed. Check the arXiv ID and try again.")
 
 
-# -- Ask Questions ----------------------------------------------------------
+# Ask Questions
 
 def page_ask() -> None:
     st.header("❓ Ask Questions")
@@ -1711,7 +1708,7 @@ def page_ask() -> None:
             st.markdown(f"{i}. **{h['query']}** — {h['num_sources']} sources")
 
 
-# -- Literature Review ------------------------------------------------------
+# Literature Review 
 
 def page_literature_review() -> None:
     st.header("📚 Literature Review")
@@ -1789,7 +1786,7 @@ def page_literature_review() -> None:
                 st.markdown(f"- **{p['title']}** — {p.get('authors', 'N/A')}")
 
 
-# -- Compare Papers ---------------------------------------------------------
+# Compare Papers 
 
 def page_compare() -> None:
     st.header("⚖️ Compare Papers")
